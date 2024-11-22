@@ -2,7 +2,7 @@
 
 A Chrome extension that enhances GitHub's pull request file view by adding the ability to filter files by code owners.
 
-![GitHub Code Owners Filter Demo](public/readme.png)
+<img src="public/readme.png" alt="GitHub Code Owners Filter Demo" height="350"/>
 
 ## Features
 
