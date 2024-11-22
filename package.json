@@ -1,0 +1,33 @@
+{
+  "name": "github-codeowners-filter-chrome-extension",
+  "version": "0.1.0",
+  "description": "A Chrome extension that enhances GitHub's pull request file view by adding the ability to filter files by code owners.",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:YossiSaadi/github-codeowners-filter-chrome-extension.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite build --watch",
+    "clean": "rm -rf dist",
+    "build": "yarn clean && vite build",
+    "build:zip": "yarn build && zip -r github-codeowners-filter-chrome-extension.zip dist",
+    "lint": "eslint src/**/*.ts"
+  },
+  "keywords": [],
+  "author": "YossiSaadi",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.283",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.9.1",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3",
+    "rollup-plugin-copy": "^3.5.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
