@@ -17,7 +17,7 @@ A Chrome extension that enhances GitHub's pull request file view by adding the a
 
 ### From Chrome Web Store
 
-1. Visit the [Chrome Web Store](https://chrome.google.com/webstore) (link to be added)
+1. Visit the [Chrome Web Store](https://chrome.google.com/webstore) (link to be added once approved by Google)
 2. Click "Add to Chrome"
 3. Click "Add Extension" in the popup
 
@@ -26,7 +26,7 @@ A Chrome extension that enhances GitHub's pull request file view by adding the a
 1. Clone this repository
 
 ```bash
-git clone https://github.com/yourusername/github-codeowners-filter.git
+git clone https://github.com/YossiSaadi/github-codeowners-filter-chrome-extension.git
 ```
 
 2. Open Chrome and navigate to `chrome://extensions/`
@@ -55,7 +55,7 @@ The extension:
 
 ### Prerequisites
 
-- Node.js (v14 or higher recommended)
+- Node.js (v20 recommended)
 - npm or yarn
 - Chrome browser
 
@@ -65,19 +65,13 @@ The extension:
 2. Install dependencies
 
 ```bash
-npm install
+yarn install
 ```
 
 ### Building
 
 ```bash
-npm run build
-```
-
-### Testing
-
-```bash
-npm test
+yarn build
 ```
 
 ### Development Mode
@@ -97,13 +91,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## Technical Details
-
-- Written in TypeScript
-- Uses MutationObserver to detect DOM changes
-- Integrates with GitHub's native UI components
-- Zero external dependencies
-- Lightweight and performance-focused
 
 ## Privacy
 
