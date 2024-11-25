@@ -29,10 +29,9 @@ The extension only processes code ownership information that is already displaye
 
 This extension requires minimal permissions:
 
-- `activeTab`: Required to read the current GitHub page content for filtering
 - `https://github.com/*`: Required to run on GitHub pull request pages
 
-These permissions are used solely to provide the core functionality of filtering files by code ownership.
+This permission is used solely to provide the core functionality of filtering files by code ownership.
 
 ## Changes to This Policy
 
