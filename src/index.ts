@@ -78,40 +78,53 @@ class GitHubCodeOwnersFilter {
     return match ? [match[1]] : [];
   }
 
-  private addCodeOwnerFilters(filterMenu: HTMLElement): void {
-    if (this.codeowners.size === 0) {
-      console.debug('[GitHub Code owners Filter]: No code owners found, skipping filter creation');
-      return;
-    }
-
-    const section = document.createElement('section');
-    section.className = 'js-codeowner-section';
-
-    const divider = document.createElement('hr');
-    divider.className = 'SelectMenu-divider';
-
-    const header = document.createElement('div');
-    header.className = 'SelectMenu-header';
-    header.innerHTML = '<h3 class="SelectMenu-title">Filter by code owner</h3>';
-
-    const container = document.createElement('div');
-    container.className = 'SelectMenu-list';
-
-    this.codeowners.forEach((owner) => {
-      const label = this.createLabel(owner);
-      container.appendChild(label);
-    });
-
-    section.appendChild(divider);
-    section.appendChild(header);
-    section.appendChild(container);
-
-    const menuList = filterMenu.querySelector('.SelectMenu-list');
-    if (menuList) {
-      console.debug('[GitHub Code owners Filter]: Adding code owner section to filter menu');
-      menuList.appendChild(section);
-    }
+private addCodeOwnerFilters(filterMenu: HTMLElement): void {
+  if (this.codeowners.size === 0) {
+    console.debug('[GitHub Code owners Filter]: No code owners found, skipping filter creation');
+    return;
   }
+
+  const section = document.createElement('section');
+  section.className = 'js-codeowner-section';
+
+  const divider = document.createElement('hr');
+  divider.className = 'SelectMenu-divider';
+
+  const header = document.createElement('div');
+  header.className = 'SelectMenu-header';
+  header.innerHTML = '<h3 class="SelectMenu-title">Filter by code owner</h3>';
+
+  const container = document.createElement('div');
+  container.className = 'SelectMenu-list';
+
+  // Convert to array and find "you" if it exists
+  const owners = Array.from(this.codeowners.values());
+  const youIndex = owners.findIndex(owner => owner.name === 'you');
+
+  // If "you" exists, move it to the front
+  if (youIndex !== -1) {
+    const youOwner = owners.splice(youIndex, 1)[0];
+    owners.unshift({
+      name: 'You',
+      files: youOwner.files
+    });
+  }
+
+  owners.forEach((owner) => {
+    const label = this.createLabel(owner);
+    container.appendChild(label);
+  });
+
+  section.appendChild(divider);
+  section.appendChild(header);
+  section.appendChild(container);
+
+  const menuList = filterMenu.querySelector('.SelectMenu-list');
+  if (menuList) {
+    console.debug('[GitHub Code owners Filter]: Adding code owner section to filter menu');
+    menuList.appendChild(section);
+  }
+}
 
   private createLabel({ name, files }: CodeOwner): HTMLElement {
     const label = document.createElement('label');
