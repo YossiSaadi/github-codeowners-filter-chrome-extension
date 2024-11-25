@@ -74,7 +74,7 @@ class GitHubCodeOwnersFilter {
   }
 
   private parseOwners(text: string): string[] {
-    const match = text.match(/Owned by ([@\w\/-]+)/);
+    const match = text.match(/Owned by ([@\w/-]+)/);
     return match ? [match[1]] : [];
   }
 
