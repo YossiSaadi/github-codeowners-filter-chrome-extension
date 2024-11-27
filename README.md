@@ -17,7 +17,7 @@ A Chrome extension that enhances GitHub's pull request file view by adding the a
 
 ### From Chrome Web Store
 
-1. Visit the [Chrome Web Store](https://chrome.google.com/webstore) (link to be added once approved by Google)
+1. Visit the [Chrome Web Store]([https://chrome.google.com/webstore](https://chromewebstore.google.com/detail/github-code-owners-filter/jhbeenhmiadkocfjpmipapdnpgngbmmo))
 2. Click "Add to Chrome"
 3. Click "Add Extension" in the popup
 
