@@ -6,6 +6,7 @@ interface CodeOwner {
 class GitHubCodeOwnersFilter {
   private codeowners: Map<string, CodeOwner> = new Map();
   private observer: MutationObserver;
+  private isInitialized = false;
 
   constructor() {
     console.debug('[GitHub Code owners Filter]: Initializing');
@@ -21,35 +22,88 @@ class GitHubCodeOwnersFilter {
   }
 
   private handleMutations(mutations: MutationRecord[]): void {
+    if (this.isInitialized) {
+      return;
+    }
+
     for (const mutation of mutations) {
       const filterMenu = (mutation.target as Element).querySelector('.SelectMenu.js-file-filter');
       if (filterMenu && !filterMenu.querySelector('.js-codeowner-section')) {
         console.debug('[GitHub Code owners Filter]: Found filter menu, initializing');
-        this.initialize(filterMenu as HTMLElement);
+        this.initialize(filterMenu as HTMLElement).catch((error) => {
+          console.error('[GitHub Code owners Filter]: Error during initialization:', error);
+        });
         break;
       }
     }
   }
+  private getFileElements(): NodeListOf<HTMLElement> {
+    return document.querySelectorAll('#files copilot-diff-entry');
+  }
 
-  private initialize(filterMenu: HTMLElement): void {
-    const fileList = document.querySelector('.js-diff-progressive-container');
-    if (!fileList) {
+  private getExpectedFileCount(): number | null {
+    const counter = document.querySelector('#files_tab_counter');
+    const title = counter?.getAttribute('title');
+    return title ? parseInt(title, 10) : null;
+  }
+
+  private async waitForAllFiles(expectedCount: number): Promise<NodeListOf<HTMLElement>> {
+    // this wait is necessary for very large PRs, as GitHub loads files in chunks
+    const maxAttempts = 30; // Maximum number of attempts (30 seconds)
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      const files = this.getFileElements();
+      console.debug(`[GitHub Code owners Filter]: Found ${files.length}/${expectedCount} files`);
+
+      if (files.length === expectedCount) {
+        return files as NodeListOf<HTMLElement>;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      attempts++;
+    }
+
+    console.warn(
+      `[GitHub Code owners Filter]: Only found ${this.getFileElements().length}/${expectedCount} files after 30 seconds`,
+    );
+    return this.getFileElements();
+  }
+
+  private async initialize(filterMenu: HTMLElement): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
+
+    const expectedFileCount = this.getExpectedFileCount();
+    if (!expectedFileCount) {
+      console.debug('[GitHub Code owners Filter]: Could not determine expected file count');
+      return;
+    }
+
+    this.createCodeOwnersFilterSection(filterMenu, expectedFileCount);
+
+    const fileList = await this.waitForAllFiles(expectedFileCount);
+    if (!fileList.length) {
       console.debug('[GitHub Code owners Filter]: No file list found');
       return;
     }
 
     this.scanCodeOwners(fileList);
     this.addCodeOwnerFilters(filterMenu);
+
+    this.observer.disconnect();
+    this.isInitialized = true;
+    console.debug(
+      '[GitHub Code owners Filter]: Extension fully initialized and observer disconnected',
+    );
   }
 
-  private scanCodeOwners(fileList: Element): void {
-    const fileElements = fileList.querySelectorAll('.file');
-    console.debug(
-      `[GitHub Code owners Filter]: Scanning ${fileElements.length} files for ownership`,
-    );
+  private scanCodeOwners(fileList: NodeListOf<HTMLElement>): void {
+    console.debug(`[GitHub Code owners Filter]: Scanning ${fileList.length} files for ownership`);
 
-    fileElements.forEach((element) => {
-      const ownershipIcon = element.querySelector('.octicon-shield-lock');
+    fileList.forEach((element) => {
+      const ownershipIcon = element.querySelector('.file-info .octicon-shield-lock');
       if (!ownershipIcon) return;
 
       const tooltip = ownershipIcon.closest('[aria-label]');
@@ -74,57 +128,90 @@ class GitHubCodeOwnersFilter {
   }
 
   private parseOwners(text: string): string[] {
-    const match = text.match(/Owned by ([@\w/-]+)/);
-    return match ? [match[1]] : [];
+    const hasYou = text.includes('Owned by you');
+    const mentions = text.match(/(@[\w/-]+)/g) || [];
+    return hasYou ? ['You', ...mentions] : mentions;
   }
 
-private addCodeOwnerFilters(filterMenu: HTMLElement): void {
-  if (this.codeowners.size === 0) {
-    console.debug('[GitHub Code owners Filter]: No code owners found, skipping filter creation');
-    return;
+  private createCodeOwnersFilterSection(filterMenu: HTMLElement, expectedFileCount: number): void {
+    const section = document.createElement('section');
+    section.className = 'js-codeowner-section';
+
+    const divider = document.createElement('hr');
+    divider.className = 'SelectMenu-divider';
+
+    const header = document.createElement('div');
+    header.className = 'SelectMenu-header';
+    header.innerHTML = '<h3 class="SelectMenu-title">Filter by code owner</h3>';
+
+    const container = document.createElement('div');
+    container.className = 'SelectMenu-list';
+
+    const footerItem = document.createElement('div');
+    footerItem.className = 'SelectMenu-item SelectMenu-footer-item color-fg-muted';
+    footerItem.textContent = `Loading code owners for ${expectedFileCount} files...`;
+    footerItem.style.pointerEvents = 'none';
+    container.appendChild(footerItem);
+
+    section.appendChild(divider);
+    section.appendChild(header);
+    section.appendChild(container);
+
+    const menuList = filterMenu.querySelector('.SelectMenu-list');
+    if (menuList) {
+      console.debug(
+        '[GitHub Code owners Filter]: Adding initial code owner section to filter menu',
+      );
+      menuList.appendChild(section);
+    }
   }
 
-  const section = document.createElement('section');
-  section.className = 'js-codeowner-section';
+  private addCodeOwnerFilters(filterMenu: HTMLElement): void {
+    const container = filterMenu.querySelector('.js-codeowner-section .SelectMenu-list');
+    if (!container) return;
 
-  const divider = document.createElement('hr');
-  divider.className = 'SelectMenu-divider';
+    const footerItem = container.querySelector('.SelectMenu-footer-item');
 
-  const header = document.createElement('div');
-  header.className = 'SelectMenu-header';
-  header.innerHTML = '<h3 class="SelectMenu-title">Filter by code owner</h3>';
+    if (this.codeowners.size === 0 && footerItem) {
+      footerItem.textContent = 'No code owners found';
+      console.debug('[GitHub Code owners Filter]: No code owners found, skipping filter creation');
+      return;
+    }
 
-  const container = document.createElement('div');
-  container.className = 'SelectMenu-list';
+    const owners = Array.from(this.codeowners.values()).sort((a, b) =>
+      b.name.localeCompare(a.name),
+    );
+    const youIndex = owners.findIndex((owner) => owner.name === 'You');
 
-  // Convert to array and find "you" if it exists
-  const owners = Array.from(this.codeowners.values());
-  const youIndex = owners.findIndex(owner => owner.name === 'you');
+    if (youIndex !== -1) {
+      const youOwner = owners.splice(youIndex, 1)[0];
+      owners.push({
+        name: 'You',
+        files: youOwner.files,
+      });
+    }
 
-  // If "you" exists, move it to the front
-  if (youIndex !== -1) {
-    const youOwner = owners.splice(youIndex, 1)[0];
-    owners.unshift({
-      name: 'You',
-      files: youOwner.files
+    console.debug('[GitHub Code owners Filter]: Adding code owners to menu');
+    owners.forEach((owner) => {
+      const label = this.createLabel(owner);
+      container.prepend(label);
     });
+
+    if (!footerItem) return;
+
+    const filesWithOwnership = new Set(
+      Array.from(this.codeowners.values()).flatMap((owner) => Array.from(owner.files)),
+    );
+
+    const filesWithoutOwnership = this.getFileElements().length - filesWithOwnership.size;
+
+    if (filesWithoutOwnership === 0) {
+      footerItem.textContent = 'All files have ownership!';
+      return;
+    }
+
+    footerItem.textContent = `${filesWithoutOwnership} files do not have ownership`;
   }
-
-  owners.forEach((owner) => {
-    const label = this.createLabel(owner);
-    container.appendChild(label);
-  });
-
-  section.appendChild(divider);
-  section.appendChild(header);
-  section.appendChild(container);
-
-  const menuList = filterMenu.querySelector('.SelectMenu-list');
-  if (menuList) {
-    console.debug('[GitHub Code owners Filter]: Adding code owner section to filter menu');
-    menuList.appendChild(section);
-  }
-}
 
   private createLabel({ name, files }: CodeOwner): HTMLElement {
     const label = document.createElement('label');
@@ -158,10 +245,8 @@ private addCodeOwnerFilters(filterMenu: HTMLElement): void {
       document.querySelectorAll('.js-codeowner-option:checked'),
     ).map((input) => (input as HTMLInputElement).value);
 
-    const allFiles = document.querySelectorAll('.file') as NodeListOf<HTMLElement>;
-
-    allFiles.forEach((file) => {
-      const ownershipIcon = file.querySelector('.octicon-shield-lock');
+    this.getFileElements().forEach((file) => {
+      const ownershipIcon = file.querySelector('.file-info .octicon-shield-lock');
       if (!ownershipIcon) {
         file.style.display = selectedOwners.length === 0 ? '' : 'none';
         return;

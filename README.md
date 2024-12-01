@@ -10,14 +10,15 @@ A Chrome extension that enhances GitHub's pull request file view by adding the a
 - 🚀 Works automatically on GitHub pull request file pages
 - 🎯 Shows file count per code owner
 - ⚡ Real-time filtering without page reload
-- 🔄 Dynamically updates when new files are loaded
+- 🔄 Waits for all files to load before processing
+- 📊 Shows stats about files without ownership
 - 🎨 Seamlessly integrates with GitHub's native UI
 
 ## Installation
 
 ### From Chrome Web Store
 
-1. Visit the [Chrome Web Store]([https://chrome.google.com/webstore](https://chromewebstore.google.com/detail/github-code-owners-filter/jhbeenhmiadkocfjpmipapdnpgngbmmo))
+1. Visit the [Chrome Web Store](https://chromewebstore.google.com/detail/github-code-owners-filter/jhbeenhmiadkocfjpmipapdnpgngbmmo)
 2. Click "Add to Chrome"
 3. Click "Add Extension" in the popup
 
@@ -90,7 +91,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
 
 ## Privacy
 

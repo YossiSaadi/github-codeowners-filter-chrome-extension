@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GitHub Code Owners Filter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Filter GitHub PR files by code owners",
   "permissions": [],
   "host_permissions": ["https://github.com/*"],
