@@ -44,12 +44,12 @@ class GitHubCodeOwnersFilter {
   private getExpectedFileCount(): number | null {
     const counter = document.querySelector('#files_tab_counter');
     const title = counter?.getAttribute('title');
-    return title ? parseInt(title, 10) : null;
+    return title ? parseInt(title.replace(",", ""), 10) : null;
   }
 
   private async waitForAllFiles(expectedCount: number): Promise<NodeListOf<HTMLElement>> {
     // this wait is necessary for very large PRs, as GitHub loads files in chunks
-    const maxAttempts = 30; // Maximum number of attempts (30 seconds)
+    const maxAttempts = 45; // Maximum number of attempts (30 seconds)
     let attempts = 0;
 
     while (attempts < maxAttempts) {
