@@ -1,6 +1,6 @@
 {
   "name": "github-codeowners-filter-chrome-extension",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Chrome extension that enhances GitHub's pull request file view by adding the ability to filter files by code owners.",
   "repository": {
     "type": "git",
